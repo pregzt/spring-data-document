@@ -15,10 +15,13 @@
  */
 package org.springframework.data.document.mongodb.repository;
 
+import com.mysema.query.annotations.QueryEmbeddable;
+
 /**
  * 
  * @author Oliver Gierke
  */
+@QueryEmbeddable
 public class Address {
 
 	private String street;

@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.document.mongodb.MongoConverter;
+import org.springframework.data.document.mongodb.MongoOperations;
 import org.springframework.data.document.mongodb.MongoTemplate;
 import org.springframework.data.document.mongodb.query.Query;
 import org.springframework.data.domain.Page;
@@ -226,6 +227,17 @@ public class SimpleMongoRepository<T, ID extends Serializable> extends
         Query query = QueryUtils.applySorting(new Query(), sort);
         return template.find(getCollectionName(getDomainClass()), query,
                 getDomainClass());
+    }
+
+
+    /**
+     * Returns the underlying {@link MongoOperations} instance.
+     * 
+     * @return
+     */
+    protected MongoOperations getMongoOperations() {
+
+        return this.template;
     }
 
 

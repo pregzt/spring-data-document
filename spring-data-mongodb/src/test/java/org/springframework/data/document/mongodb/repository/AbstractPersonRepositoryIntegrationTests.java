@@ -28,6 +28,7 @@ public abstract class AbstractPersonRepositoryIntegrationTests {
     @Autowired
     protected PersonRepository repository;
     Person dave, carter, boyd,stefan,leroi;
+    QPerson person;
 
     @Before
     public void setUp() {
@@ -39,6 +40,8 @@ public abstract class AbstractPersonRepositoryIntegrationTests {
         boyd = new Person("Boyd", "Tinsley", 45);
         stefan = new Person("Stefan", "Lessard", 34);
         leroi = new Person("Leroi", "Moore", 41);
+        
+        person = new QPerson("person");
     
         repository.save(Arrays.asList(dave, carter, boyd, stefan, leroi));
     }
@@ -130,5 +133,38 @@ public abstract class AbstractPersonRepositoryIntegrationTests {
     	List<Person> result = repository.findByAddressZipCode(address.getZipCode());
     	assertThat(result.size(), is(1));
 		assertThat(result, hasItem(dave));
+	}
+    
+    @Test
+	public void findsPeopleByQueryDslLastnameSpec() throws Exception {
+		
+    	List<Person> result = repository.findAll(person.lastname.eq("Matthews"));
+    	assertThat(result.size(), is(1));
+		assertThat(result, hasItem(dave));
+	}
+    
+    
+    @Test
+	public void findsPeopleByzipCodePredicate() throws Exception {
+    	
+    	Address address = new Address("Foo Street 1", "C0123", "Bar");
+    	dave.setAddress(address);
+    	repository.save(dave);
+
+    	List<Person> result = repository.findAll(person.address.zipCode.eq("C0123"));
+		assertThat(result.size(), is(1));
+		assertThat(result, hasItem(dave));
+	}
+    
+    @Test
+	public void findsPagedPeopleByPredicate() throws Exception {
+		    	
+    	Page<Person> page =
+            repository.findAll(person.lastname.contains("a"), new PageRequest(0, 2,
+                    Direction.ASC, "lastname"));
+    	assertThat(page.isFirstPage(), is(true));
+        assertThat(page.isLastPage(), is(false));
+        assertThat(page.getNumberOfElements(), is(2));
+        assertThat(page, hasItems(carter, stefan));
 	}
 }

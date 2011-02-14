@@ -90,6 +90,10 @@ public class MongoRepositoryFactoryBean extends
      */
     public static class MongoRepositoryFactory extends RepositoryFactorySupport {
     	
+    	private static final boolean QUERY_DSL_PRESENT = org.springframework.util.ClassUtils.isPresent(
+                "com.mysema.query.types.Predicate",
+                MongoRepositoryFactory.class.getClassLoader());
+    	
     	private final MongoTemplate template;
     	
     	/**
@@ -107,7 +111,11 @@ public class MongoRepositoryFactoryBean extends
         protected <T, ID extends Serializable> RepositorySupport<T, ID> getTargetRepository(
                 Class<T> domainClass, Class<?> repositoryInterface) {
 
-            return new SimpleMongoRepository<T, ID>(domainClass, template);
+			if (isQueryDslRepository(repositoryInterface)) {
+				return new QueryDslMongoRepository<T, ID>(domainClass, template);
+			} else {
+				return new SimpleMongoRepository<T, ID>(domainClass, template);
+			}
         }
 
 
@@ -115,7 +123,12 @@ public class MongoRepositoryFactoryBean extends
         @SuppressWarnings("rawtypes")
         protected Class<? extends RepositorySupport> getRepositoryClass(Class<?> repositoryInterface) {
 
-            return SimpleMongoRepository.class;
+            return isQueryDslRepository(repositoryInterface) ? QueryDslMongoRepository.class : SimpleMongoRepository.class;
+        }
+        
+        
+        private static boolean isQueryDslRepository(Class<?> repositoryInterface) {
+        	return QUERY_DSL_PRESENT && QueryDslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
         }
 
 
